@@ -1,11 +1,10 @@
 from tkinter import *
 from tkinter import ttk
-import sqlite3
+import sqlQueries as sqqr
 
 def db(tree):   # Database
-    conn = sqlite3.connect('CnkDatabase/chinook.db')
-    mycursor = conn.cursor()
-    data(conn, mycursor, tree)
+    mycursor = sqqr.conn.cursor()
+    data(sqqr.conn, mycursor, tree)
 
 def data(conn, mycursor, tree): # Data import
     for x in tree.get_children(): # Cleans tree
@@ -24,8 +23,8 @@ class AppWindow:
         self.root.wm_attributes("-topmost", 1)
         self.frame = Frame(self.root).pack()
 
-        self.label1 = ttk.Label(self.frame, test="Label")
-        self.label1.pack()
+        # self.label1 = ttk.Label(self.frame, test="Label")
+        # self.label1.pack()
         self.tree = ttk.Treeview(self.frame, columns=(1, 2, 3, 4, 5, 6, 7), \
                                  height=20, show="headings")
         # self.tree.bind("<Double-1>", self.on_double_click)

@@ -3,7 +3,6 @@ import sqlite3
 conn = sqlite3.connect('CnkDatabase/chinook.db')
 cur = conn.cursor()
 
-
 def tables_names(cr=cur):
     """
     Creates list of all tables names
@@ -24,7 +23,7 @@ chnk_tables = tables_names()  # Saves all chnk tables in chnk_tables
 # print(chnk_tables)
 
 def get_cols(tbl_name, cr=cur):
-    """    Creates list of all columns' names and if FK
+    """    Creates list of all columns' names and if PK
     :param tbl_name: table's name
     :param cr: cursor
     :return: cols: columns' names
@@ -32,13 +31,20 @@ def get_cols(tbl_name, cr=cur):
     cols = []
     qry = 'PRAGMA table_info(' + tbl_name + ');'
     res = cr.execute(qry)
-    # res row --> (idx, name, type, ?, ?, PK?)
+    # res row --> (idx, name, type, NotNull, dflt_value, PK)
     for row in res.fetchall():
-        cols.append([row[5], row[1]])  # Saves name and if PK (isPK? , name)
+        print(row)
+        cols.append([row[5], row[1]])  # Saves name and if PK (isPK , name)
     return cols
 
+rs = cur.execute("SELECT * FROM sqlite_master WHERE ;")
+for r in rs.fetchall():
+    print(r)
+    print()
 
-# print(get_cols('albums'))
+
+print(get_cols('albums'))
+print(get_cols('playlist_track'))
 
 def get_table_pk(tbl_name):
     """ Creates list of FK of the table
@@ -104,7 +110,7 @@ def get_related_tables(chosen_tbls, tbls=chnk_tables):
     """ Creates list of potentially related tables' names
     :param chosen_tbls: chosen tables
     :param tbls: all tables' list
-    :return: relations: list of tuples (chosen table, related table, relation) .
+    :return: relations: list of tuples (chosen table, related table, fk) .
     """
     relations = []
     for tbl in tbls:
@@ -118,50 +124,29 @@ def get_related_tables(chosen_tbls, tbls=chnk_tables):
     return relations
 
 
+def get_related(mytbl, tbls=chnk_tables):
+    """
+    List of related tables
+    :param mytbl:
+    :param tbls:
+    :return: list of related tables' names
+    """
+    related = []
+    for tbl in tbls:
+        if tbl is not mytbl:
+            if is_related(mytbl, tbl):
+                related.append(tbl)
+    return related
+
 
 #print(get_related_tables(['albums', 'tracks']))
 
-
-class MyTable:
-    def __init__(self, name):
-        self.name = name
-        self.pk = get_table_pk(name)
-        self.relations_count = 0
-        self.relations = []
-
-    def add_relation(self, relation):
-        self.relations_count += 1
-        self.relations.append(relation)
-
-    def remove_relation(self, relation):
-        self.relations_count -= 1
-        self.relations.remove(relation)
-
-    def check_for_potential_relations(self, tbls):
-        potential_relations = []
-        for tbl in tbls:
-            if tbl is not self.name:
-                rlt = get_relating_col(self.name, tbl)
-                if rlt is not None and (tbl, rlt) not in self.relations:
-                    potential_relations.append(rlt)
-        return potential_relations
-
-    def init_relations(self, tables):
-        self.relations = self.check_for_potential_relations(tables)
-        self.relations_count = len(self.relations)
-
-class Tables:
-    def __init__(self):
-        self.all_tables = tables_names()
-        self.tables = list()
-        self.relations = list()
-        self.potential_tables = list()
-
-    def add_table(self, table_name):
-        if self.tables is []:
-            self.tables.append(MyTable(table_name))
-        else:
-            new_tbl = MyTable(table_name)
-
-
-
+def dict_of_relations(tbls=chnk_tables):
+    """
+    :param tbls: all tables' names
+    :return: all related
+    """
+    relations_d = dict()
+    for tbl in tbls:
+        relations_d.update({tbl, get_related(tbl)})
+    return relations_d
