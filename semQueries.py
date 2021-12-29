@@ -25,6 +25,10 @@ def tables_names(cur):
     return tbls
 
 
+def str_to_sql(s):   # From string to sql
+    return '"' + s.replace('"', '""') + '"'
+
+
 def create_tbls_relations(cur, tbls):
     """
     Creating dict with table and their FKs
@@ -34,10 +38,9 @@ def create_tbls_relations(cur, tbls):
     """
     rlts = dict()
     for tbl in tbls:
-        rlts[tbl[0]] = dict()  # Creates dict() for table in dictionary
-        tbls.append(tbl[0])
+        rlts[tbl] = dict()  # Creates dict() for table in dictionary
     for tbl in tbls:
-        rows = cur.execute("PRAGMA foreign_key_list({})").format('"' + tbl.replace('"', '""') + '"')
+        rows = cur.execute("PRAGMA foreign_key_list({})".format(str_to_sql(tbl)))
         for r in rows.fetchall():
             print(r)
             rlts[r[2]][tbl] = r[4]  # table2Name : (table1Name : FK)

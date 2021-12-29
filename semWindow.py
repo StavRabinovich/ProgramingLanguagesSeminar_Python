@@ -1,6 +1,6 @@
 from tkinter import *
 from tkinter import ttk
-import semQueries as semq
+import semQueries
 
 
 def data(mycur, query, tree, current_tbls, table_columns):
@@ -40,8 +40,60 @@ def data(mycur, query, tree, current_tbls, table_columns):
     for row in rows:
         tree.insert('', 'end', values=row)
 
-    semq.sort_treeview_by_col(tree, 0, False)
+    semQueries.sort_treeview_by_col(tree, 0, False)
     return f'Columns Count: {len(q_data.description)}\nRows Count: {c_rows}'
+
+
+def init_window_db(pth):
+    """
+    Creates all db's vars
+    :param pth: DB's path
+    :return:    crs (the cursor), all_tbls (list: all tables' names),
+                relations (dict: all relations between tables), tbls_cols (dict: Tables with their columns)
+    """
+    crs = semQueries.db_connector(pth)                              # Pointer to DB
+    all_tbls = semQueries.tables_names(crs)                         # All tables' names
+    relations = semQueries.create_tbls_relations(crs, all_tbls)     # Relations between tables (dict)
+    tbls_cols = semQueries.tbls_dict(crs, all_tbls)                 # Tables with their columns (dict)
+    return crs, all_tbls, relations, tbls_cols
+
+
+class Window:
+
+    def __init__(self):
+        # DB
+        self.crs, self.all_tbls, self.relations, self.tbls_cols = init_window_db('CnkDatabase/chinook.db')
+        # self.crs = semQueries.db_connector('CnkDatabase/chinook.db')                # Pointer to DB
+        # self.all_tbls = semQueries.tables_names(self.crs)                           # All tables' names
+        # self.relations = semQueries.create_tbls_relations(self.crs, self.all_tbls)  # Relations between tables (dict)
+        # self.tbls_cols = semQueries.tbls_dict(self.crs, self.all_tbls)              # Tables with their columns (dict)
+        self.current_tbls = []  # Presented tables
+
+        # Window
+        self.root = Tk()
+        self.root.title('Seminar Project \t-\tStav Suzan Rabinovich\t208661090')    # Window title
+        self.root.geometry("1200x600")  # Window size
+        self.root.wm_attributes("-topmost", 1)  # ?
+
+        self.topFrame = Frame(self.root)  # divide program into 2 frames top frame and tree frame(under)
+        self.topFrame.pack(side="top")
+
+        self.frame_query = Frame(self.topFrame)  # small frame for query label
+        self.frame_query.grid(row=0, column=0, columnspan=3)
+
+        self.var = StringVar()
+        self.label_query = Label(self.frame_query, textvariable=self.var,
+                                 wraplength=450, font=("Arial", 11), height=5, width=50)
+        self.var.set("Query")  # Query label with StringVar
+        self.label_query.pack()
+
+
+
+        self.root.mainloop()  # Infinite run the program
+
+
+
+
 
 
 class App:
@@ -69,17 +121,6 @@ class App:
     """
 
     def __init__(self):
-
-        self.root = Tk()
-        self.root.geometry("1000x550")
-        self.root.title("SQL join query ")
-        self.root.wm_attributes("-topmost", 1)
-
-        tables = []  # array for holding all table names
-        self.mycursor = semq.db_connector('CnkDatabase/chinook.db')  # function to connect to the database
-        self.relation = dictRelationshipTables(self.mycursor,
-                                               tables)  # analyze the database with all the relations (keys,tables)
-        self.tables_columns = dictColumnTables(self.mycursor, tables)
         self.topFrame = Frame(self.root)  # divide program into 2 frames top frame and tree frame(under)
         self.topFrame.pack(side="top")
 
@@ -186,10 +227,10 @@ class App:
         self.value[0] = w.get(index)
         self.value[1] = None
         self.value[2] = None
-        query = semq.query_creation(self.value, 1, self.relation, self.join_columns, self.join_tables)
+        query = semQueries.query_creation(self.value, 1, self.relation, self.join_columns, self.join_tables)
         string_query = query.split("FROM")[0] + '\nFROM' + query.split("FROM")[1]
         self.var.set(string_query)
-        self.statistics.set(data(self.mycursor, query, self.tree, self.value, self.tables_columns))
+        self.statistics.set(data(self.my_cursor, query, self.tree, self.value, self.tables_columns))
         self.updateListbox(2, self.relation[self.value[0]])
         self.updateListbox(3, [])
 
@@ -201,12 +242,12 @@ class App:
         index = int(w.curselection()[0])
         self.value[1] = w.get(index)
         self.value[2] = None
-        query = semq.query_creation(self.value, 2, self.relation, self.join_columns, self.join_tables)
+        query = semQueries.query_creation(self.value, 2, self.relation, self.join_columns, self.join_tables)
         from_split = query.split("FROM")
         string_query = from_split[0] + '\nFROM' + from_split[1].split("WHERE")[0] + '\nWHERE' + \
                        from_split[1].split("WHERE")[1]
         self.var.set(string_query)
-        self.statistics.set(data(self.mycursor, query, self.tree, self.value, self.tables_columns))
+        self.statistics.set(data(self.my_cursor, query, self.tree, self.value, self.tables_columns))
         self.updateListbox(3, self.relation[self.value[1]])
 
     def clickListbox3(self, event):
@@ -216,12 +257,12 @@ class App:
         w = event.widget
         index = int(w.curselection()[0])
         self.value[2] = w.get(index)
-        query = create_query(self.value, 3, self.relation, self.join_columns, self.join_tables)
+        query = semQueries.query_creation(self.value, 3, self.relation, self.join_columns, self.join_tables)
         from_split = query.split("FROM")
         string_query = from_split[0] + '\nFROM' + from_split[1].split("WHERE")[0] + '\nWHERE' + \
                        from_split[1].split("WHERE")[1]
         self.var.set(string_query)
-        self.statistics.set(data(self.mycursor, query, self.tree, self.value, self.tables_columns))
+        self.statistics.set(data(self.my_cursor, query, self.tree, self.value, self.tables_columns))
 
     def updateListbox(self, num, dict_tables):
         """Updating new items in listbox according to the ones who got clicked
@@ -253,8 +294,9 @@ class App:
         if region == "heading":
             col = self.tree.identify_column(event.x)
             if self.lastClick is None or self.lastClick != col:
-                self.tree.heading(col, command=lambda: treeview_sort_column(self.tree, col, False))
+                self.tree.heading(col, command=lambda: semQueries.sort_treeview_by_col(self.tree, col, False))
                 self.lastClick = col
 
 
-app = App()
+#app = App()
+wind = Window()
