@@ -87,6 +87,25 @@ class Window:
         self.var.set("Query")  # Query label with StringVar
         self.label_query.pack()
 
+        self.join_tables = StringVar()
+        self.join_tables.set('Join Columns:\t')  # join tables label with StringVar
+        self.join_tables_label = Label(self.topFrame,
+                                       textvariable=self.join_tables, height=7, anchor="w", width=17, justify='left')
+        self.join_tables_label.grid(row=1, column=1, sticky="w")
+
+        self.join_columns = StringVar()
+        self.join_columns.set('None')  # join columns label with StringVar
+        self.join_columns_label = Label(self.topFrame,
+                                        textvariable=self.join_columns, height=7, width=20, anchor="w",
+                                        justify='left')
+        self.join_columns_label.grid(row=1, column=2, sticky="w")
+
+        self.lb1_frame = Frame(self.topFrame)
+        self.lb1_frame.grid(row=1, column=3, padx=5)  # frame and Listbox for the 1st table pick
+        self.lb1 = Listbox(self.lb1_frame, exportselection=0, width=20)
+        for i in range(0, len(self.all_tbls)):  # inserting to the first listbox all the table names in the DB
+            self.lb1.insert(i, self.all_tbls[i])
+        self.lb1.pack(side='left')
 
 
         self.root.mainloop()  # Infinite run the program
@@ -121,44 +140,38 @@ class App:
     """
 
     def __init__(self):
-        self.topFrame = Frame(self.root)  # divide program into 2 frames top frame and tree frame(under)
-        self.topFrame.pack(side="top")
+        # self.var = StringVar()
+        # self.label_query = Label(self.frame_query, textvariable=self.var,
+        #                          wraplength=450, font=("Arial", 11), height=5, width=50)
+        # self.var.set("Query")  # Query label with StringVar
+        # self.label_query.pack()
+        #
+        # self.statistics = StringVar()
+        # self.statistics.set('Number of Columns: 0\nNumber of Rows: 0')
+        # self.label_statistics = Label(self.topFrame,  # statistics label with StringVar
+        #                               textvariable=self.statistics, anchor="nw", wraplength=250, justify='left',
+        #                               width=20)
+        # self.label_statistics.grid(row=1, column=0, sticky='w', padx=20)
 
-        self.frame_query = Frame(self.topFrame)  # small frame for query label
-        self.frame_query.grid(row=0, column=0, columnspan=3)
-
-        self.var = StringVar()
-        self.label_query = Label(self.frame_query, textvariable=self.var,
-                                 wraplength=450, font=("Arial", 11), height=5, width=50)
-        self.var.set("Query")  # Query label with StringVar
-        self.label_query.pack()
-
-        self.statistics = StringVar()
-        self.statistics.set('Number of Columns: 0\nNumber of Rows: 0')
-        self.label_statistics = Label(self.topFrame,  # statistics label with StringVar
-                                      textvariable=self.statistics, anchor="nw", wraplength=250, justify='left',
-                                      width=20)
-        self.label_statistics.grid(row=1, column=0, sticky='w', padx=20)
-
-        self.join_tables = StringVar()
-        self.join_tables.set('Join Columns:\t')  # join tables label with StringVar
-        self.join_tables_label = Label(self.topFrame,
-                                       textvariable=self.join_tables, height=7, anchor="w", width=17, justify='left')
-        self.join_tables_label.grid(row=1, column=1, sticky="w")
-
-        self.join_columns = StringVar()
-        self.join_columns.set('None')  # join columns label with StringVar
-        self.join_columns_label = Label(self.topFrame,
-                                        textvariable=self.join_columns, height=7, width=20, anchor="w",
-                                        justify='left')
-        self.join_columns_label.grid(row=1, column=2, sticky="w")
-
-        self.lb1_frame = Frame(self.topFrame)
-        self.lb1_frame.grid(row=1, column=3, padx=5)  # frame and Listbox for the 1st table pick
-        self.lb1 = Listbox(self.lb1_frame, exportselection=0, width=20)
-        for i in range(0, len(tables)):  # inserting to the first listbox all the table names in the DB
-            self.lb1.insert(i, tables[i])
-        self.lb1.pack(side='left')
+        # self.join_tables = StringVar()
+        # self.join_tables.set('Join Columns:\t')  # join tables label with StringVar
+        # self.join_tables_label = Label(self.topFrame,
+        #                                textvariable=self.join_tables, height=7, anchor="w", width=17, justify='left')
+        # self.join_tables_label.grid(row=1, column=1, sticky="w")
+        #
+        # self.join_columns = StringVar()
+        # self.join_columns.set('None')  # join columns label with StringVar
+        # self.join_columns_label = Label(self.topFrame,
+        #                                 textvariable=self.join_columns, height=7, width=20, anchor="w",
+        #                                 justify='left')
+        # self.join_columns_label.grid(row=1, column=2, sticky="w")
+        #
+        # self.lb1_frame = Frame(self.topFrame)
+        # self.lb1_frame.grid(row=1, column=3, padx=5)  # frame and Listbox for the 1st table pick
+        # self.lb1 = Listbox(self.lb1_frame, exportselection=0, width=20)
+        # for i in range(0, len(tables)):  # inserting to the first listbox all the table names in the DB
+        #     self.lb1.insert(i, tables[i])
+        # self.lb1.pack(side='left')
 
         self.lb2_frame = Frame(self.topFrame)
         self.lb2_frame.grid(row=1, column=4, padx=5)  # frame and Listbox for the 2nd table pick
