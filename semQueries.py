@@ -42,10 +42,16 @@ def create_tbls_relations(cur, tbls):
     for tbl in tbls:
         rows = cur.execute("PRAGMA foreign_key_list({})".format(str_to_sql(tbl)))
         for r in rows.fetchall():
-            print(r)
             rlts[r[2]][tbl] = r[4]  # table2Name : (table1Name : FK)
             rlts[tbl][r[2]] = r[3]  # table1Name : (table2Name : FK)
     return rlts
+
+
+def find_related_tbl(tbl, tbls, relations):
+    for rlt_tbl in tbls:
+        if tbl in relations[rlt_tbl]:
+            return rlt_tbl
+    return None
 
 
 def query_creation(tbls, tbls_num, relations, lbl_tbls, lbl_cols):
@@ -70,11 +76,13 @@ def query_creation(tbls, tbls_num, relations, lbl_tbls, lbl_cols):
             q_where += ' AND '
             j_tbl += '\n\n'
             j_col += '\n\n'
+        rlt_tbl = find_related_tbl(tbls[i], tbls, relations)
         j_tbl += f'Table: {tbls[i]:<16}\nTable: {tbls[i + 1]:<16}'
-        j_col += f'FK: {relations[tbls[i]][tbls[i + 1]]}\n' \
-                 f'FK: {relations[tbls[i + 1]][tbls[i]]}'
-        q_select += f', {tbls[i + 1]}'
-        q_where += f'{tbls[i]}.{relations[tbls[i]][tbls[i + 1]]} = {tbls[i + 1]}.{relations[tbls[i + 1]][tbls[i]]}'
+        j_col += f'FK: {relations[tbls[i]][rlt_tbl]}\n' \
+                 f'FK: {relations[rlt_tbl][tbls[i]]}'
+        q_select += f', {rlt_tbl}'
+        q_where += f'{tbls[i]}.{relations[tbls[i]][rlt_tbl]} = {rlt_tbl}.{relations[rlt_tbl][tbls[i]]}'
+        print(q_where)
     if tbls_num == 1:
         q_where = ''
         j_tbl = 'No Joined tables'
@@ -151,14 +159,18 @@ def influanced_by(tbl, current_tbls, d_rlts):
     return depend
 
 
-def undo_last(current_tbls):
+def get_all_related(current_tbls, d_rlts):
     """
-    Removes last added table from list
+    Add all related tables to a list
     :param current_tbls:
+    :param d_rlts:
     :return:
     """
-    if current_tbls is not None:
-        current_tbls.pop()
+    all_related = []
+    for c_tbl in current_tbls:
+        [all_related.append(val) for val in d_rlts[c_tbl] if val not in current_tbls]
+    return list(set(all_related))
+
 
 
 ## Order of adding - if added 2nd, will check only after
