@@ -54,6 +54,7 @@ def find_related_tbl(tbl, tbls, relations):
     return None
 
 
+
 def query_creation(tbls, tbls_num, relations, lbl_tbls, lbl_cols):
     """
     Creates query from tables and relation
@@ -66,29 +67,32 @@ def query_creation(tbls, tbls_num, relations, lbl_tbls, lbl_cols):
     """
 
     # Query's base
-    q_select = f'SELECT * FROM {tbls[0]}'
+    tbls_set = set()
     q_where = f' WHERE '
     j_tbl = ''
     j_col = ''
-
     for i in range(tbls_num - 1):
         if 0 < i:  # Add one more table
             q_where += ' AND '
             j_tbl += '\n\n'
             j_col += '\n\n'
         rlt_tbl = find_related_tbl(tbls[i], tbls, relations)
-        j_tbl += f'Table: {tbls[i]:<16}\nTable: {tbls[i + 1]:<16}'
-        j_col += f'FK: {relations[tbls[i]][rlt_tbl]}\n' \
-                 f'FK: {relations[rlt_tbl][tbls[i]]}'
-        q_select += f', {rlt_tbl}'
+        j_tbl += f'Table: {tbls[i]:<16}   Table: {tbls[i + 1]:<16}'
+        j_col += f'FK: {relations[tbls[i]][rlt_tbl]}'
+        tbls_set.add(rlt_tbl)
         q_where += f'{tbls[i]}.{relations[tbls[i]][rlt_tbl]} = {rlt_tbl}.{relations[rlt_tbl][tbls[i]]}'
-        print(q_where)
     if tbls_num == 1:
         q_where = ''
         j_tbl = 'No Joined tables'
         j_col = ''
     lbl_tbls.set(j_tbl)
     lbl_cols.set(j_col)
+
+    q_select = f'SELECT * FROM {tbls[0]}'
+    for tbl in tbls_set:
+        if tbl is not tbls[0]:
+            q_select += f', {tbl}'
+
     return q_select + q_where
 
 

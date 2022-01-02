@@ -19,7 +19,9 @@ def data(mycur, query, tree, current_tbls, table_columns):
         tree.delete(x)
 
     query = query.replace('main.', '')
+
     print(query)
+    print('***')
 
     q_data = mycur.execute(query)   # Query's data
     rows = mycur.fetchall()
@@ -97,10 +99,17 @@ class Window:
     def init_topframe(self):
         # Top frame - Will contain combobox, buttons and presents the list of the current tables.
         self.topFrame = Frame(self.root)    # Top frame
-        self.topFrame.pack()
+        self.topFrame.pack(pady=20)
         self.init_main_combobox()           # Add Combobox of all tables
         self.init_extra_tables()            # Add Combobox and buttons
 
+        # Presents the query (lbl will be added)
+        # self.frm_query = Frame(self.topFrame)
+        #self.myscrollbar = Scrollbar(self.frm_query, orient="vertical")
+        #self.myscrollbar.pack(side="right", fill="y")
+        #self.query_txt, self.lbl_query = create_txt_lbl(
+         #   self.topFrame, "Query will be presented here", wid=60, lbl_pack=True)
+        #self.lbl_tbls_join.grid(row=2, column=3, sticky="w", padx=10, pady=10)
         # Presents the query (lbl will be added)
         self.frm_query = Frame(self.topFrame)
         self.frm_query.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
@@ -109,7 +118,7 @@ class Window:
 
         # Joined tables text
         self.tbls_join_txt, self.lbl_tbls_join = create_txt_lbl(
-            self.topFrame, 'Joined Tables will be presented here', hig=8, wid=30)
+            self.topFrame, 'Joined Tables will be presented here', hig=8, wid=40)
         self.lbl_tbls_join.grid(row=2, column=3, sticky="w", padx=10, pady=10)
 
         # Joined columns text
@@ -121,6 +130,10 @@ class Window:
         self.stat_txt, self.stat_lbl = create_txt_lbl(
             self.topFrame, 'Number of Columns: 0 Number of Rows: 0', wrpln=100, wid=20, hig=2, anc="nw")
         self.stat_lbl.grid(row=3, column=0, sticky='w', padx=10, pady=10)
+
+        # Scrollbar
+        self.scb_tfrm = Scrollbar(self.topFrame, orient='vertical')
+        # self.scb_tfrm.pack() #side=RIGHT, fill=Y
 
     def init_main_combobox(self):
         self.lbl_main_table = Label(self.topFrame, text="First Table:", height=2, width=10, justify='left')
@@ -168,14 +181,18 @@ class Window:
 
     def add_from_cmbx(self, event):
         self.current_tbls.append(event.widget.get())
+        self.add_cmbx.set('')
         self.update_query()
 
     def cmnd_undo(self):
-        self.current_tbls.pop()
+        if self.current_tbls:
+            self.current_tbls.pop()
+        self.add_cmbx.set('')
         self.update_query()
 
     def cmnd_reset(self):
         self.current_tbls = []
+        self.main_cmbx.set('')
         self.update_query()
 
     def remove_last_table(self):
