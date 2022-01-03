@@ -20,9 +20,6 @@ def data(mycur, query, tree, current_tbls, table_columns):
 
     query = query.replace('main.', '')
 
-    print(query)
-    print('***')
-
     q_data = mycur.execute(query)   # Query's data
     rows = mycur.fetchall()
 
@@ -51,6 +48,20 @@ def data(mycur, query, tree, current_tbls, table_columns):
 
 
 def create_txt_lbl(frm, txt, wrpln=250, fnt="Segoe UI", fnt_sz=10, hig=5, anc="w", wid=30, jst='left', lbl_pack=False):
+    """
+    Create labels with text inside
+    :param frm:         Father frame
+    :param txt:         Label's value
+    :param wrpln:       wraplength
+    :param fnt:         Font
+    :param fnt_sz:      Font size
+    :param hig:         height
+    :param anc:         anchor
+    :param wid:         width
+    :param jst:         justify
+    :param lbl_pack:    if needed to be packed
+    :return: my_text (StringVar), lbl_text (Label)
+    """
     my_txt = StringVar()
     my_txt.set(txt)
     lbl_txt = Label(frm, textvariable=my_txt, wraplength=wrpln, font=(fnt, fnt_sz),
@@ -58,6 +69,17 @@ def create_txt_lbl(frm, txt, wrpln=250, fnt="Segoe UI", fnt_sz=10, hig=5, anc="w
     if lbl_pack:
         lbl_txt.pack()
     return my_txt, lbl_txt
+
+
+def create_text(master, str, height=10, width=60, font=("Segoe UI", 10), bgcolor='whitesmoke'):
+    frm = Frame(master)
+    txt = Text(frm, height=height, width=width)
+    txt.pack(side=LEFT)
+    txt.configure(font=font, background=bgcolor)
+    txt.insert(tkinter.END, str)
+    scb = Scrollbar(frm)
+    scb.pack(side=RIGHT)
+    return frm, txt, scb
 
 
 class Window:
@@ -104,36 +126,23 @@ class Window:
         self.init_extra_tables()            # Add Combobox and buttons
 
         # Presents the query (lbl will be added)
-        # self.frm_query = Frame(self.topFrame)
-        #self.myscrollbar = Scrollbar(self.frm_query, orient="vertical")
-        #self.myscrollbar.pack(side="right", fill="y")
-        #self.query_txt, self.lbl_query = create_txt_lbl(
-         #   self.topFrame, "Query will be presented here", wid=60, lbl_pack=True)
-        #self.lbl_tbls_join.grid(row=2, column=3, sticky="w", padx=10, pady=10)
-        # Presents the query (lbl will be added)
-        self.frm_query = Frame(self.topFrame)
+        self.frm_query, self.txt_query, self.scb_query = create_text(self.topFrame, "Query will be presented here")
         self.frm_query.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
-        self.query_txt, self.lbl_query = create_txt_lbl(
-            self.frm_query, "Query will be presented here", wid=60, lbl_pack=True)
 
         # Joined tables text
         self.tbls_join_txt, self.lbl_tbls_join = create_txt_lbl(
-            self.topFrame, 'Joined Tables will be presented here', hig=8, wid=40)
+            self.topFrame, 'Joined Tables will be here', hig=8, wid=40)
         self.lbl_tbls_join.grid(row=2, column=3, sticky="w", padx=10, pady=10)
 
         # Joined columns text
         self.cols_join_txt, self.lbl_cols_join = create_txt_lbl(
-            self.topFrame, 'Joined Columns will be presented here', hig=8, wid=35)
+            self.topFrame, 'Joined Columns will be here', hig=8, wid=35)
         self.lbl_cols_join.grid(row=2, column=4, sticky="w", padx=10, pady=10)
 
         # Statistics
         self.stat_txt, self.stat_lbl = create_txt_lbl(
             self.topFrame, 'Number of Columns: 0 Number of Rows: 0', wrpln=100, wid=20, hig=2, anc="nw")
         self.stat_lbl.grid(row=3, column=0, sticky='w', padx=10, pady=10)
-
-        # Scrollbar
-        self.scb_tfrm = Scrollbar(self.topFrame, orient='vertical')
-        # self.scb_tfrm.pack() #side=RIGHT, fill=Y
 
     def init_main_combobox(self):
         self.lbl_main_table = Label(self.topFrame, text="First Table:", height=2, width=10, justify='left')
@@ -187,12 +196,17 @@ class Window:
     def cmnd_undo(self):
         if self.current_tbls:
             self.current_tbls.pop()
-        self.add_cmbx.set('')
-        self.update_query()
+        if not self.current_tbls:
+            self.cmnd_reset()
+        else:
+            self.add_cmbx.set('')
+            self.update_query()
 
     def cmnd_reset(self):
         self.current_tbls = []
         self.main_cmbx.set('')
+        self.tbls_join_txt.set('No tables!')
+        self.cols_join_txt.set('')
         self.update_query()
 
     def remove_last_table(self):
@@ -201,14 +215,17 @@ class Window:
         self.update_query()
 
     def update_query(self):
+        self.txt_query.delete('1.0', 'end')
         if self.current_tbls:
             qry = semQueries.query_creation(self.current_tbls, len(self.current_tbls),
                                         self.relations, self.tbls_join_txt, self.cols_join_txt)
             qry_str = qry.split("FROM")[0] + '\nFROM' + qry.split("FROM")[1]
-            self.query_txt.set(qry_str)
+            # self.str_query_txt.set(qry_str)
+            self.txt_query.insert('0.0', qry_str)
             self.stat_txt.set(data(self.crs, qry, self.trv, self.current_tbls, self.tbls_cols))
         else:
-            self.query_txt.set("No tables were chosen")
+            # self.str_query_txt.set("No tables were chosen")
+            self.txt_query.insert('1.0', "No tables were chosen")
             self.trv.delete(*self.trv.get_children())
         self.all_related = semQueries.get_all_related(self.current_tbls, self.relations)
         self.add_cmbx['values'] = self.all_related

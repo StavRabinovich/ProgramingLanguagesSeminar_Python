@@ -54,7 +54,6 @@ def find_related_tbl(tbl, tbls, relations):
     return None
 
 
-
 def query_creation(tbls, tbls_num, relations, lbl_tbls, lbl_cols):
     """
     Creates query from tables and relation
