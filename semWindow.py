@@ -5,6 +5,13 @@ from tkinter.ttk import Combobox, Treeview, Scrollbar
 import semQueries
 
 
+def query_format(str):
+    dct = {'FROM': '\nFROM', ' WHERE': '\nWHERE', ' AND ': '\nAND '}
+    for r in (('FROM', '\nFROM'), (' WHERE', '\nWHERE'), (' AND ', '\nAND ')):
+        str = str.replace(*r)
+    return str
+
+
 def data(mycur, query, tree, current_tbls, table_columns):
     """
     Import data using query, and adding to the tree (sorted)
@@ -19,8 +26,7 @@ def data(mycur, query, tree, current_tbls, table_columns):
         tree.delete(x)
 
     query = query.replace('main.', '')
-
-    q_data = mycur.execute(query)   # Query's data
+    q_data = mycur.execute(query)  # Query's data
     rows = mycur.fetchall()
 
     param = [i for i in range(1, len(q_data.description) + 1)]
@@ -44,10 +50,11 @@ def data(mycur, query, tree, current_tbls, table_columns):
         tree.insert('', 'end', values=row)
 
     semQueries.sort_treeview_by_col(tree, 0, False)
-    return f'Columns Count: {len(q_data.description)}\t\tRows Count: {len(rows)}'
+    print(f'Columns Count: {len(q_data.description)}\tRows Count: {len(rows)}')
+    return f'Columns Count: {len(q_data.description)}\tRows Count: {len(rows)}'
 
 
-def create_txt_lbl(frm, txt, wrpln=250, fnt="Segoe UI", fnt_sz=10, hig=5, anc="w", wid=30, jst='left', lbl_pack=False):
+def create_txt_lbl(frm, txt, wrpln=250, fnt="Segoe UI", fnt_sz=10, hig=5, anc="w", wid=20, jst='left', lbl_pack=False):
     """
     Create labels with text inside
     :param frm:         Father frame
@@ -71,7 +78,7 @@ def create_txt_lbl(frm, txt, wrpln=250, fnt="Segoe UI", fnt_sz=10, hig=5, anc="w
     return my_txt, lbl_txt
 
 
-def create_text(master, str, height=10, width=60, font=("Segoe UI", 10), bgcolor='whitesmoke'):
+def create_text(master, str, height=10, width=70, font=("Segoe UI", 10), bgcolor='whitesmoke'):
     frm = Frame(master)
     txt = Text(frm, height=height, width=width)
     txt.pack(side=LEFT)
@@ -85,10 +92,10 @@ def create_text(master, str, height=10, width=60, font=("Segoe UI", 10), bgcolor
 class Window:
 
     def __init__(self):
-        self.init_window_db('CnkDatabase/chinook.db')   # DB connection
-        self.init_root()        # Root / Window creation
-        self.init_topframe()    # Top frame - Contains comboboxes, buttons and visual text
-        self.init_treeview()    # Bottom frame - Contains the treeview
+        self.init_window_db('CnkDatabase/chinook.db')  # DB connection
+        self.init_root()  # Root / Window creation
+        self.init_topframe()  # Top frame - Contains comboboxes, buttons and visual text
+        self.init_treeview()  # Bottom frame - Contains the treeview
 
         self.main_cmbx.bind("<<ComboboxSelected>>", self.first_choice)
         self.add_cmbx.bind("<<ComboboxSelected>>", self.add_from_cmbx)
@@ -106,7 +113,7 @@ class Window:
         self.relations = semQueries.create_tbls_relations(self.crs, self.all_tbls)  # Relations between tables (dict)
         self.tbls_cols = semQueries.tbls_dict(self.crs, self.all_tbls)  # Tables with their columns (dict)
         self.current_tbls = []  # Holds all current queries' tables
-        self.all_related = []   # Holds all related tables to current tables
+        self.all_related = []  # Holds all related tables to current tables
 
     def init_root(self):
         """
@@ -114,42 +121,38 @@ class Window:
         :return: None
         """
         self.root = Tk()
-        self.root.title('Seminar Project - Stav Suzan Rabinovich 208661090')  # Window title
-        self.root.geometry('1000x600')  # Window size
-        self.root.wm_attributes("-topmost", 1)  # ?
+        self.root.title('ChinookDB JOIN Queries')       # Window title
+        self.root.geometry('1000x600')                  # Window size
+        self.root.wm_minsize(width=900, height=550)     # Window MIN size
+        self.root.wm_attributes("-topmost", 1)
 
     def init_topframe(self):
         # Top frame - Will contain combobox, buttons and presents the list of the current tables.
-        self.topFrame = Frame(self.root)    # Top frame
+        self.topFrame = Frame(self.root)  # Top frame
         self.topFrame.pack(pady=20)
-        self.init_main_combobox()           # Add Combobox of all tables
-        self.init_extra_tables()            # Add Combobox and buttons
+        self.init_main_combobox()  # Add Combobox of all tables
+        self.init_extra_tables()  # Add Combobox and buttons
 
         # Presents the query (lbl will be added)
         self.frm_query, self.txt_query, self.scb_query = create_text(self.topFrame, "Query will be presented here")
-        self.frm_query.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+        self.frm_query.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
 
         # Joined tables text
         self.tbls_join_txt, self.lbl_tbls_join = create_txt_lbl(
-            self.topFrame, 'Joined Tables will be here', hig=8, wid=40)
-        self.lbl_tbls_join.grid(row=2, column=3, sticky="w", padx=10, pady=10)
-
-        # Joined columns text
-        self.cols_join_txt, self.lbl_cols_join = create_txt_lbl(
-            self.topFrame, 'Joined Columns will be here', hig=8, wid=35)
-        self.lbl_cols_join.grid(row=2, column=4, sticky="w", padx=10, pady=10)
+            self.topFrame, 'Joined Tables will be here', hig=8, wid=50)
+        self.lbl_tbls_join.grid(row=2, column=3, columnspan=2, sticky="w", padx=10, pady=10)
 
         # Statistics
         self.stat_txt, self.stat_lbl = create_txt_lbl(
-            self.topFrame, 'Number of Columns: 0 Number of Rows: 0', wrpln=100, wid=20, hig=2, anc="nw")
-        self.stat_lbl.grid(row=3, column=0, sticky='w', padx=10, pady=10)
+            self.topFrame, 'Number of Columns: 0 Number of Rows: 0', wrpln=100, wid=60, hig=2, anc="nw")
+        self.stat_lbl.grid(row=3, column=0, columnspan=4, sticky='w', padx=10, pady=10)
 
     def init_main_combobox(self):
         self.lbl_main_table = Label(self.topFrame, text="First Table:", height=2, width=10, justify='left')
         self.frm_main_cmbx = Frame(self.topFrame)
         self.main_cmbx = Combobox(self.frm_main_cmbx, values=self.all_tbls, width=25)
-        self.lbl_main_table.grid(row=0, column=0, pady=20)   # Location
-        self.frm_main_cmbx.grid(row=0, column=1, pady=10)    # Location
+        self.lbl_main_table.grid(row=0, column=0, pady=20)  # Location
+        self.frm_main_cmbx.grid(row=0, column=1, pady=10)  # Location
         self.main_cmbx.pack()
 
     def init_extra_tables(self):
@@ -161,23 +164,23 @@ class Window:
         self.lbl_add_tbls = Label(self.topFrame, text="Add Table:", height=2, width=10, justify='left')
         self.frm_add_cmbx = Frame(self.topFrame)
         self.add_cmbx = Combobox(self.frm_add_cmbx, values=self.all_related, width=25)
-        self.lbl_add_tbls.grid(row=0, column=2)     # Location
-        self.frm_add_cmbx.grid(row=0, column=3)     # Location
+        self.lbl_add_tbls.grid(row=0, column=2)  # Location
+        self.frm_add_cmbx.grid(row=0, column=3)  # Location
         self.add_cmbx.pack()
 
         # Buttons
         self.frm_btns = Frame(self.topFrame)
         self.frm_btns.grid(row=0, column=4)
-        self.undo_btn = Button(self.frm_btns, text="Undo", width=10, command=self.cmnd_undo)        # Undo button
-        self.reset_btn = Button(self.frm_btns, text="Reset", width=10, command=self.cmnd_reset)     # Reset button
+        self.undo_btn = Button(self.frm_btns, text="Undo", width=10, command=self.cmnd_undo)  # Undo button
+        self.reset_btn = Button(self.frm_btns, text="Reset", width=10, command=self.cmnd_reset)  # Reset button
         self.undo_btn.pack(side='left')
         self.reset_btn.pack(side='right')
 
     def init_treeview(self):
         self.frm_trv = Frame(self.root)
         self.frm_trv.pack(side='bottom', padx=20, pady=10, fill='both', expand=True)
-        self.trv = Treeview(self.frm_trv, height=25, show='headings')                   # Treeview
-        vsb = ttk.Scrollbar(self.frm_trv, orient="vertical", command=self.trv.yview)    # Treeview vertical scrollbar
+        self.trv = Treeview(self.frm_trv, height=25, show='headings')  # Treeview
+        vsb = ttk.Scrollbar(self.frm_trv, orient="vertical", command=self.trv.yview)  # Treeview vertical scrollbar
         hsb = ttk.Scrollbar(self.frm_trv, orient="horizontal", command=self.trv.xview)  # Treeview horizontal scrollbar
         vsb.pack(side='right', fill='y')
         hsb.pack(side='bottom', fill='x')
@@ -206,7 +209,6 @@ class Window:
         self.current_tbls = []
         self.main_cmbx.set('')
         self.tbls_join_txt.set('No tables!')
-        self.cols_join_txt.set('')
         self.update_query()
 
     def remove_last_table(self):
@@ -218,16 +220,16 @@ class Window:
         self.txt_query.delete('1.0', 'end')
         if self.current_tbls:
             qry = semQueries.query_creation(self.current_tbls, len(self.current_tbls),
-                                        self.relations, self.tbls_join_txt, self.cols_join_txt)
-            qry_str = qry.split("FROM")[0] + '\nFROM' + qry.split("FROM")[1]
-            # self.str_query_txt.set(qry_str)
+                                            self.relations, self.tbls_join_txt)
+            qry_str = query_format(qry)
+            print(qry_str)
             self.txt_query.insert('0.0', qry_str)
-            self.stat_txt.set(data(self.crs, qry, self.trv, self.current_tbls, self.tbls_cols))
+            self.stat_txt.set(data(self.crs, qry_str, self.trv, self.current_tbls, self.tbls_cols))
         else:
-            # self.str_query_txt.set("No tables were chosen")
             self.txt_query.insert('1.0', "No tables were chosen")
             self.trv.delete(*self.trv.get_children())
         self.all_related = semQueries.get_all_related(self.current_tbls, self.relations)
         self.add_cmbx['values'] = self.all_related
+
 
 wind = Window()

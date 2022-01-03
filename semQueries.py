@@ -54,7 +54,7 @@ def find_related_tbl(tbl, tbls, relations):
     return None
 
 
-def query_creation(tbls, tbls_num, relations, lbl_tbls, lbl_cols):
+def query_creation1(tbls, tbls_num, relations, lbl_tbls, lbl_cols):
     """
     Creates query from tables and relation
     :param tbls:        list of tables' names in DB
@@ -68,24 +68,60 @@ def query_creation(tbls, tbls_num, relations, lbl_tbls, lbl_cols):
     # Query's base
     tbls_set = set()
     q_where = f' WHERE '
-    j_tbl = ''
-    j_col = ''
+    str_relation = ''
     for i in range(tbls_num - 1):
         if 0 < i:  # Add one more table
             q_where += ' AND '
-            j_tbl += '\n\n'
-            j_col += '\n\n'
+            str_relation += '\n\n'
         rlt_tbl = find_related_tbl(tbls[i], tbls, relations)
-        j_tbl += f'Table: {tbls[i]:<16}   Table: {tbls[i + 1]:<16}'
-        j_col += f'FK: {relations[tbls[i]][rlt_tbl]}'
-        tbls_set.add(rlt_tbl)
+        tbls_set.add(tbls[i])   # Add to set
+        tbls_set.add(rlt_tbl)   # Add to set
+
+        str_relation += f'Table: {tbls[i]:<16} \tTable: {rlt_tbl:<16} \tFK: {relations[tbls[i]][rlt_tbl]}'
         q_where += f'{tbls[i]}.{relations[tbls[i]][rlt_tbl]} = {rlt_tbl}.{relations[rlt_tbl][tbls[i]]}'
+
     if tbls_num == 1:
         q_where = ''
-        j_tbl = 'No Joined tables'
-        j_col = ''
-    lbl_tbls.set(j_tbl)
-    lbl_cols.set(j_col)
+        str_relation = 'No Joined tables'
+    lbl_tbls.set(str_relation)
+
+    q_select = f'SELECT * FROM {tbls[0]}'
+    for tbl in tbls_set:
+        if tbl is not tbls[0]:
+            q_select += f', {tbl}'
+
+    return q_select + q_where
+
+
+def query_creation(tbls, tbls_num, relations, lbl_tbls):
+    """
+    Creates query from tables and relation
+    :param tbls:        list of tables' names in DB
+    :param tbls_num:    (int) number of current tables.
+    :param relations:   (dict) dictionary of dictionaries of table, it fk and connected tables.
+    :param lbl_tbls:    (String) Label that presents the tables to the user
+    :return:            (String) The query
+    """
+
+    # Query's base
+    tbls_set = set()    # Set of all related tables (without duplicates)
+    tbls_set.add(tbls[0])
+    q_where = f' WHERE '
+    str_relation = ''
+    for i in range(tbls_num - 1):
+        if 0 < i:  # Add one more table
+            q_where += ' AND '
+            str_relation += '\n\n'
+        rlt_tbl = find_related_tbl(tbls[i], tbls, relations)
+        tbls_set.add(tbls[i])   # Add to set
+        tbls_set.add(rlt_tbl)   # Add to set
+        str_relation += f'Table: {tbls[i]:<16} \tTable: {rlt_tbl:<16} \tFK: {relations[tbls[i]][rlt_tbl]}'
+        q_where += f'{tbls[i]}.{relations[tbls[i]][rlt_tbl]} = {rlt_tbl}.{relations[rlt_tbl][tbls[i]]}'
+
+    if tbls_num == 1:
+        q_where = ''
+        str_relation = 'No Joined tables'
+    lbl_tbls.set(str_relation)
 
     q_select = f'SELECT * FROM {tbls[0]}'
     for tbl in tbls_set:
@@ -174,6 +210,3 @@ def get_all_related(current_tbls, d_rlts):
         [all_related.append(val) for val in d_rlts[c_tbl] if val not in current_tbls]
     return list(set(all_related))
 
-
-
-## Order of adding - if added 2nd, will check only after
