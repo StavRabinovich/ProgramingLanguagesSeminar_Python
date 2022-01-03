@@ -87,7 +87,7 @@ class Window:
     def __init__(self):
         self.init_window_db('CnkDatabase/chinook.db')   # DB connection
         self.init_root()        # Root / Window creation
-        self.init_topframe()    # Top frame - Contains coboboxes, buttons and visual text
+        self.init_topframe()    # Top frame - Contains comboboxes, buttons and visual text
         self.init_treeview()    # Bottom frame - Contains the treeview
 
         self.main_cmbx.bind("<<ComboboxSelected>>", self.first_choice)
