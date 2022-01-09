@@ -5,10 +5,6 @@ from tkinter.ttk import Combobox, Treeview, Scrollbar
 import semQueries
 
 
-def create_button(frm, txt, cmnd, width=10, bg='lavender'):
-    return Button(frm, text=txt, width=width, command=cmnd, bg=bg)
-
-
 def query_format(str):
     dct = {'FROM': '\nFROM', ' WHERE': '\nWHERE', ' AND ': '\nAND '}
     for r in (('FROM', '\nFROM'), (' WHERE', '\nWHERE'), (' AND ', '\nAND ')):
@@ -82,26 +78,28 @@ def create_txt_lbl(frm, txt, wrpln=250, fnt="Segoe UI", fnt_sz=10, hig=5, anc="w
     return my_txt, lbl_txt
 
 
-def create_text(master, str, height=10, width=110, font=("Segoe UI", 10), bgcolor='whitesmoke'):
+def create_text(master, str, height=10, width=70, font=("Segoe UI", 10), bgcolor='whitesmoke'):
     frm = Frame(master)
     txt = Text(frm, height=height, width=width)
     txt.pack(side=LEFT)
     txt.configure(font=font, background=bgcolor)
     txt.insert(tkinter.END, str)
-    scb = None
-    # scb = Scrollbar(frm, command=txt.yview)
-    # scb.pack(side=RIGHT)
+    scb = Scrollbar(frm)
+    scb.pack(side=RIGHT)
     return frm, txt, scb
 
 
 class Window:
+
     def __init__(self):
         self.init_window_db('CnkDatabase/chinook.db')  # DB connection
-        self.all_tbls = []
         self.init_root()  # Root / Window creation
-        self.init_combos()
         self.init_topframe()  # Top frame - Contains comboboxes, buttons and visual text
         self.init_treeview()  # Bottom frame - Contains the treeview
+
+        self.main_cmbx.bind("<<ComboboxSelected>>", self.first_choice)
+        self.add_cmbx.bind("<<ComboboxSelected>>", self.add_from_cmbx)
+
         self.root.mainloop()  # Infinite run the program
 
     def init_window_db(self, pth):
@@ -124,84 +122,63 @@ class Window:
         """
         self.root = Tk()
         self.root.title('ChinookDB JOIN Queries')  # Window title
-        self.root.geometry('850x600')  # Window size
-        self.root.wm_minsize(width=850, height=550)  # Window MIN size
+        self.root.geometry('1000x600')  # Window size
+        self.root.wm_minsize(width=900, height=550)  # Window MIN size
         self.root.wm_attributes("-topmost", 1)
-
-    def init_combos(self):
-        self.topFrame = Frame(self.root, background="lightsteelblue")
-        self.topFrame.pack(pady=20)
-        self.topFrame.grid(sticky=NW, ipadx=20)
-        self.frm_combos = Frame(self.topFrame, background="lightsteelblue")
-        self.frm_combos.pack(pady=20)
-
-        # 1st Combobox
-        self.lbl_main_table = Label(self.frm_combos, text="First Table:", height=2, width=10,
-                                    justify='left', bg="lightsteelblue", fg='midnightblue')
-        self.frm_main_cmbx = Frame(self.frm_combos)
-        self.main_cmbx = Combobox(self.frm_main_cmbx, values=self.all_tbls, width=25)
-        self.lbl_main_table.grid(row=0, column=0)  # Location
-        self.frm_main_cmbx.grid(row=0, column=1)  # Location
-        self.main_cmbx.pack()
-
-        # 2nd Combobox
-        self.lbl_add_tbls = Label(self.frm_combos, text="Add Table:", height=2, width=10,
-                                  justify='left', bg='lightsteelblue', fg='midnightblue')
-        self.frm_add_cmbx = Frame(self.frm_combos)
-        self.add_cmbx = Combobox(self.frm_add_cmbx, values=self.all_related, width=25)
-        self.lbl_add_tbls.grid(row=1, column=0)  # Location
-        self.frm_add_cmbx.grid(row=1, column=1)  # Location
-        self.add_cmbx.pack()
-
-        # Buttons
-        self.frm_btns = Frame(self.frm_combos, background="lightsteelblue")
-        self.frm_btns.grid(row=2, column=0, columnspan=2)
-        self.undo_btn = create_button(self.frm_btns, 'Undo', self.cmnd_undo)
-        self.reset_btn = create_button(self.frm_btns, 'Reset', self.cmnd_reset)
-        self.undo_btn.pack(side='left', padx=10, pady=25)
-        self.reset_btn.pack(side='right', padx=10, pady=25)
-        self.main_cmbx.bind("<<ComboboxSelected>>", self.first_choice)
-        self.add_cmbx.bind("<<ComboboxSelected>>", self.add_from_cmbx)
 
     def init_topframe(self):
         # Top frame - Will contain combobox, buttons and presents the list of the current tables.
+        self.topFrame = Frame(self.root)  # Top frame
+        self.topFrame.pack(pady=20)
+        self.init_main_combobox()  # Add Combobox of all tables
+        self.init_extra_tables()  # Add Combobox and buttons
 
         # Presents the query (lbl will be added)
-        self.frm_query, self.txt_query, self.scb_query = create_text(self.root, "Query will be presented here")
-        self.frm_query.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
+        self.frm_query, self.txt_query, self.scb_query = create_text(self.topFrame, "Query will be presented here")
+        self.frm_query.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
 
-        self.frm_info = Frame(self.root, background='yellow')
-        self.frm_info.grid(row=0, column=1, sticky=NE)
-        # self.scb_info = Scrollbar(self.frm_info)
-        # self.scb_info.pack(side=RIGHT, fill=Y)
-
-        self.cnvs_info = Canvas(self.frm_info, bg='red', height=170)
-        self.vsb_info = Scrollbar(self.frm_info, orient='vertical', command=self.cnvs_info.yview)
         # Joined tables text
-        # self.tbls_join_txt, self.lbl_tbls_join = create_txt_lbl(
-        #     self.frm_info, 'Joined Tables will be here', hig=7, wid=75)
-
-        self.tbls_join_txt = StringVar()
-        self.tbls_join_txt.set('Joined Tables will be presented here')
-        self.lbl_tbls_join = Label(self.cnvs_info, textvariable=self.tbls_join_txt, width=80, height=30, anchor='w')
-        self.lbl_tbls_join.grid(row=1, column=0, columnspan=2, sticky="w", padx=10, pady=10)
-        self.cnvs_info.create_window(1, 50, anchor='nw', window=self.lbl_tbls_join, height=10)
-
-        self.cnvs_info.configure(scrollregion=self.cnvs_info.bbox('all'), yscrollcommand=self.vsb_info.set)
-
-        self.cnvs_info.pack(fill='both', expand=True, side='left', pady=10)
-        self.vsb_info.pack(fill='y', side='right')
+        self.tbls_join_txt, self.lbl_tbls_join = create_txt_lbl(
+            self.topFrame, 'Joined Tables will be here', hig=8, wid=50)
+        self.lbl_tbls_join.grid(row=2, column=3, columnspan=2, sticky="w", padx=10, pady=10)
 
         # Statistics
-        # self.stat_txt, self.stat_lbl = create_txt_lbl(
-        # self.frm_info, 'Number of Columns: 0 Number of Rows: 0', wrpln=1000, wid=75, hig=1, anc="nw")
-        # self.stat_lbl.grid(row=0, column=1, sticky='w', padx=10, pady=10)
+        self.stat_txt, self.stat_lbl = create_txt_lbl(
+            self.topFrame, 'Number of Columns: 0 Number of Rows: 0', wrpln=100, wid=60, hig=2, anc="nw")
+        self.stat_lbl.grid(row=3, column=0, columnspan=4, sticky='w', padx=10, pady=10)
+
+    def init_main_combobox(self):
+        self.lbl_main_table = Label(self.topFrame, text="First Table:", height=2, width=10, justify='left')
+        self.frm_main_cmbx = Frame(self.topFrame)
+        self.main_cmbx = Combobox(self.frm_main_cmbx, values=self.all_tbls, width=25)
+        self.lbl_main_table.grid(row=0, column=0, pady=20)  # Location
+        self.frm_main_cmbx.grid(row=0, column=1, pady=10)  # Location
+        self.main_cmbx.pack()
+
+    def init_extra_tables(self):
+        """
+        Init window features for adding another table(s) / removing table(s)
+        :return: None
+        """
+        # Combobox
+        self.lbl_add_tbls = Label(self.topFrame, text="Add Table:", height=2, width=10, justify='left')
+        self.frm_add_cmbx = Frame(self.topFrame)
+        self.add_cmbx = Combobox(self.frm_add_cmbx, values=self.all_related, width=25)
+        self.lbl_add_tbls.grid(row=0, column=2)  # Location
+        self.frm_add_cmbx.grid(row=0, column=3)  # Location
+        self.add_cmbx.pack()
+
+        # Buttons
+        self.frm_btns = Frame(self.topFrame)
+        self.frm_btns.grid(row=0, column=4)
+        self.undo_btn = Button(self.frm_btns, text="Undo", width=10, command=self.cmnd_undo)  # Undo button
+        self.reset_btn = Button(self.frm_btns, text="Reset", width=10, command=self.cmnd_reset)  # Reset button
+        self.undo_btn.pack(side='left')
+        self.reset_btn.pack(side='right')
 
     def init_treeview(self):
         self.frm_trv = Frame(self.root)
-        self.frm_trv.grid(row=2, column=0, columnspan=4, padx=20, pady=10)
-        # self.frm_trv.pack(expand=True)
-        # self.frm_trv.pack(side='bottom', padx=20, pady=10, fill='both', expand=True)
+        self.frm_trv.pack(side='bottom', padx=20, pady=10, fill='both', expand=True)
         self.trv = Treeview(self.frm_trv, height=25, show='headings')  # Treeview
         vsb = ttk.Scrollbar(self.frm_trv, orient="vertical", command=self.trv.yview)  # Treeview vertical scrollbar
         hsb = ttk.Scrollbar(self.frm_trv, orient="horizontal", command=self.trv.xview)  # Treeview horizontal scrollbar
@@ -255,4 +232,4 @@ class Window:
         self.add_cmbx['values'] = self.all_related
 
 
-wind = Window()
+# wind = Window()
