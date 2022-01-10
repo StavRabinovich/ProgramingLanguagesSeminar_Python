@@ -4,7 +4,12 @@ from tkinter import ttk
 from tkinter.ttk import Combobox, Treeview, Scrollbar
 import semQueries
 
+
 myfont = ('Segoe UI', 10)
+
+
+def create_button(frm, txt, cmnd, width=10, bg='lavender'):
+    return Button(frm, text=txt, width=width, command=cmnd, bg=bg)
 
 
 def query_format(str):
@@ -95,12 +100,20 @@ class Visual:
     def __init__(self):
         self.init_window_db('CnkDatabase/chinook.db')  # DB connection
         self.init_root()  # Root / Window creation
-        self.init_topframe()  # Top frame - Contains comboboxes, buttons and visual text
+        self.init_combos()
+        # self.init_topframe()  # Top frame - Contains comboboxes, buttons and visual text
         # self.init_treeview()  # Bottom frame - Contains the treeview
         # self.main_cmbx.bind("<<ComboboxSelected>>", self.first_choice)
         # self.add_cmbx.bind("<<ComboboxSelected>>", self.add_from_cmbx)
 
         self.root.mainloop()  # Infinite run the program
+
+    def init_combos(self):
+        self.topFrame = Frame(self.root, background="lightsteelblue")
+        self.topFrame.pack(pady=20)
+        self.topFrame.grid(sticky=NW, ipadx=20)
+        self.frm_combos = Frame(self.topFrame, background="lightsteelblue")
+        self.frm_combos.pack(pady=20)
 
     def init_window_db(self, pth):
         """
@@ -169,8 +182,8 @@ class Visual:
         self.frm_add_cmbx.grid(row=0, column=3)  # Location
         self.add_cmbx.pack()
 
-vsl = Visual()
 
+vsl = Visual()
 
 
 class Window:
@@ -318,9 +331,7 @@ class Window:
         self.add_cmbx['values'] = self.all_related
 
 
-wind = Window()
-
-
+# wind = Window()
 
 ws = Tk()
 ws.title('Email System')
@@ -340,43 +351,43 @@ log_em = Entry(left_frame, font=('Times', 14))
 log_pw = Entry(left_frame, font=('Times', 14))
 login_btn = Button(left_frame, width=15, text='Login', font=('Times', 14), command=None)
 #
-# right_frame = Frame(ws, bd=2, relief=SOLID, padx=10, pady=10)
-#
-# Label(right_frame, text="Enter Name", font=('Times', 14)).grid(row=0, column=0, sticky=W, pady=10)
-# Label(right_frame, text="Enter Email", font=('Times', 14)).grid(row=1, column=0, sticky=W, pady=10)
-# Label(right_frame, text="Enter Mobile", font=('Times', 14)).grid(row=2, column=0, sticky=W, pady=10)
-# Label(right_frame, text="Enter Age", font=('Times', 14)).grid(row=3, column=0, sticky=W, pady=10)
-# Label(right_frame, text="Select Gender", font=('Times', 14)).grid(row=4, column=0, sticky=W, pady=10)
-# Label(right_frame, text="Enter Password", font=('Times', 14)).grid(row=5, column=0, sticky=W, pady=10)
-# Label(right_frame, text="Re-Enter Password", font=('Times', 14)).grid(row=6, column=0, sticky=W, pady=10)
-#
-#
-# reg_na = Entry(right_frame, font=('Times', 14))
-# reg_em = Entry(right_frame, font=('Times', 14))
-# reg_mo = Entry(right_frame, font=('Times', 14))
-# reg_ag = Entry(right_frame, font=('Times', 14))
-# reg_ge = OptionMenu(right_frame, variable, *gender)
-# reg_ge.config(width=10, font=('Times', 14))
-# reg_pw = Entry(right_frame, font=('Times', 14))
-# re_pw = Entry(right_frame, font=('Times', 14))
-#
-# reg_btn = Button(right_frame, width=15, text='Register', font=('Times', 14), command=None)
+right_frame = Frame(ws, bd=2, relief=SOLID, padx=10, pady=10)
+
+Label(right_frame, text="Enter Name", font=('Times', 14)).grid(row=0, column=0, sticky=W, pady=10)
+Label(right_frame, text="Enter Email", font=('Times', 14)).grid(row=1, column=0, sticky=W, pady=10)
+Label(right_frame, text="Enter Mobile", font=('Times', 14)).grid(row=2, column=0, sticky=W, pady=10)
+Label(right_frame, text="Enter Age", font=('Times', 14)).grid(row=3, column=0, sticky=W, pady=10)
+Label(right_frame, text="Select Gender", font=('Times', 14)).grid(row=4, column=0, sticky=W, pady=10)
+Label(right_frame, text="Enter Password", font=('Times', 14)).grid(row=5, column=0, sticky=W, pady=10)
+Label(right_frame, text="Re-Enter Password", font=('Times', 14)).grid(row=6, column=0, sticky=W, pady=10)
+
+reg_na = Entry(right_frame, font=('Times', 14))
+reg_em = Entry(right_frame, font=('Times', 14))
+reg_mo = Entry(right_frame, font=('Times', 14))
+reg_ag = Entry(right_frame, font=('Times', 14))
+reg_ge = OptionMenu(right_frame, variable, *gender)
+reg_ge.config(width=10, font=('Times', 14))
+reg_pw = Entry(right_frame, font=('Times', 14))
+re_pw = Entry(right_frame, font=('Times', 14))
+
+reg_btn = Button(right_frame, width=15, text='Register', font=('Times', 14), command=None)
 
 # widgets placement
 log_em.grid(row=0, column=1, pady=10, padx=20)
 log_pw.grid(row=1, column=1, pady=10, padx=20)
 login_btn.grid(row=2, column=1, pady=10, padx=20)
 left_frame.place(x=30, y=30)
+
 #
-# reg_na.grid(row=0, column=1, pady=10, padx=20)
-# reg_em.grid(row=1, column=1, pady=10, padx=20)
-# reg_mo.grid(row=2, column=1, pady=10, padx=20)
-# reg_ag.grid(row=3, column=1, pady=10, padx=20)
-# reg_ge.grid(row=4, column=1, pady=10, padx=20)
-# reg_pw.grid(row=5, column=1, pady=10, padx=20)
-# re_pw.grid(row=6, column=1, pady=10, padx=20)
-# reg_btn.grid(row=7, column=1, pady=10, padx=20)
-# right_frame.place(x=500, y=50)
+reg_na.grid(row=0, column=1, pady=10, padx=20)
+reg_em.grid(row=1, column=1, pady=10, padx=20)
+reg_mo.grid(row=2, column=1, pady=10, padx=20)
+reg_ag.grid(row=3, column=1, pady=10, padx=20)
+reg_ge.grid(row=4, column=1, pady=10, padx=20)
+reg_pw.grid(row=5, column=1, pady=10, padx=20)
+re_pw.grid(row=6, column=1, pady=10, padx=20)
+reg_btn.grid(row=7, column=1, pady=10, padx=20)
+right_frame.place(x=500, y=50)
 
 # infinite loop
 ws.mainloop()

@@ -193,6 +193,11 @@ class Window:
         self.vsb_info.pack(fill='y', side='right')
 
         # Statistics
+        self.stat_txt = StringVar()
+        self.stat_txt.set('Number of Columns: 0 Number of Rows: 0')
+        self.stat_lbl = Label(self.cnvs_info, textvariable=self.tbls_join_txt, width=80, height=1, anchor='nw')
+        # self.stat_lbl.grid(row=1, column=0, columnspan=2, sticky="w", padx=10, pady=10)
+        self.cnvs_info.create_window(2, 100, anchor='nw', window=self.lbl_tbls_join, height=10)
         # self.stat_txt, self.stat_lbl = create_txt_lbl(
         # self.frm_info, 'Number of Columns: 0 Number of Rows: 0', wrpln=1000, wid=75, hig=1, anc="nw")
         # self.stat_lbl.grid(row=0, column=1, sticky='w', padx=10, pady=10)
