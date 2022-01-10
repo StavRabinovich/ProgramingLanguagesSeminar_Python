@@ -41,8 +41,6 @@ def data(mycur, query, tree, current_tbls, table_columns):
 
     for row in rows:
         tree.insert('', 'end', values=row)
-
-    print(f'Number of Columns: {len(q_data.description)}\t\t\tNumber of Rows: {len(rows)}')
     return f'Number of Columns: {len(q_data.description)}\t\t\tNumber of Rows: {len(rows)}'
 
 
